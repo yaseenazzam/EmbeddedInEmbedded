@@ -24,7 +24,10 @@ int main(void) {
   LED_toggle(LED1);
   LED_toggle(LED2);
   LED_toggle(LED3);
-  k_msleep(SLEEP_MS);
+  k_msleep(500);
+
+  LED_toggle(LED1);
+  k_msleep(250);
 }
   return 0;
 }
