@@ -20,14 +20,10 @@ int main(void) {
     return 0;
   }
   
-  while (1) {
-  LED_toggle(LED1);
-  LED_toggle(LED2);
-  LED_toggle(LED3);
-  k_msleep(500);
+  LED_blink(LED1, LED_2HZ);
 
-  LED_toggle(LED1);
-  k_msleep(250);
-}
+  while (1) {
+    k_msleep(500);
+  }
   return 0;
 }
