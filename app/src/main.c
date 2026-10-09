@@ -21,21 +21,10 @@ int main(void) {
   }
   
   while (1) {
-  LED_set(LED0, LED_ON);
-  k_msleep(500);
-  LED_set(LED0, LED_OFF);
-
-  LED_set(LED1, LED_ON);
-  k_msleep(500);
-  LED_set(LED1, LED_OFF);
-
-  LED_set(LED2, LED_ON);
-  k_msleep(500);
-  LED_set(LED2, LED_OFF);
-
-  LED_set(LED3, LED_ON);
-  k_msleep(500);
-  LED_set(LED3, LED_OFF);
+  LED_toggle(LED1);
+  LED_toggle(LED2);
+  LED_toggle(LED3);
+  k_msleep(SLEEP_MS);
 }
   return 0;
 }
