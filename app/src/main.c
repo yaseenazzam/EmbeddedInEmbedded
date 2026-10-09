@@ -10,7 +10,7 @@
 #include "BTN.h"
 #include "LED.h"
 
-#define SLEEP_MS 1
+#define SLEEP_MS 500
 
 int main(void) {
   if (0 > BTN_init()) {
@@ -19,9 +19,10 @@ int main(void) {
   if (0 > LED_init()) {
     return 0;
   }
-
+  
   while (1) {
-    k_msleep(SLEEP_MS);
-  }
+  LED_toggle(LED0);
+  k_msleep(SLEEP_MS);
+}
   return 0;
 }
