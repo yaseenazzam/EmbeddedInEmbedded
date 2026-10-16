@@ -22,9 +22,31 @@ int main(void) {
   int count = 0;
   while (1) {
     if (BTN_check_clear_pressed(BTN0)){
-      LED_toggle(LED0);
-      printk("Button 0 pressed\n");
       count++;
+    }
+
+    if (count & 1){
+      LED_set(LED3, LED_ON);
+    } else {
+      LED_set(LED3, LED_OFF);
+    }
+
+    if (count & 2){
+      LED_set(LED2, LED_ON);
+    } else {
+      LED_set(LED2, LED_OFF);
+    }
+
+    if (count & 4){
+      LED_set(LED1, LED_ON);
+    } else {
+      LED_set(LED1, LED_OFF);
+    }
+
+    if (count & 8){
+      LED_set(LED0, LED_ON);
+    } else {
+      LED_set(LED0, LED_OFF);
     }
     if (count == 16){
       printk("Button 0 pressed 16 times\n");
