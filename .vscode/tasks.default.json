@@ -4,7 +4,7 @@
     {
         "label": "Build app",
         "type": "shell",
-        "command": "uv run west build -b nrf52840dk/nrf52840 ${input:target}${input:cleanFlag}${input:shield}",
+        "command": "uv run west build ${input:target} ${input:shield}",
         "options": {
             "cwd": "${workspaceFolder}"
         },
@@ -33,6 +33,21 @@
         "problemMatcher": []
     },
     {
+        "label": "Clean Build Directory",
+        "type": "shell",
+        "command": "uv run west build -t pristine ${input:target}",
+        "options": {
+            "cwd": "${workspaceFolder}"
+        },
+        "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared"
+        },
+        "problemMatcher": []
+    },
+    {
         "label": "Build and Flash app",
         "dependsOn": [
             "Build app",
@@ -44,7 +59,39 @@
             "kind": "build",
             "isDefault": true
         }
-    }
+    },
+    {
+        "label": "Debug server",
+        "type": "shell",
+        "command": "uv run west debugserver -r jlink",
+        "problemMatcher": {
+            "pattern": {
+                "regexp":
+                    "^(Info |Warn |Error):(.*)$",
+                "severity": 1,
+                "message": 2
+            },
+            "background": {
+                "activeOnStart": true,
+                "beginsPattern": ".*reset after flashing requested.*",
+                "endsPattern": ".*J-Link GDB server running on port 2331.*",
+            },
+        },
+        "isBackground": true,
+        "runOptions": {
+            "instanceLimit": 1,
+            "instancePolicy": "terminateOldest"
+        },
+        "presentation": {
+            "reveal": "silent",
+            "close": true,
+        },
+    },
+    {
+        "label": "Stop Debugserver",
+        "type": "process",
+        "command": "${command:workbench.action.tasks.terminate}",
+    },
 ],
   "inputs": [
     {
@@ -52,16 +99,6 @@
       "type": "promptString",
       "description": "Build target",
       "default": "app"
-    },
-    {
-      "id": "cleanFlag",
-      "type": "pickString",
-      "description": "Clean build?",
-      "default": "",
-      "options": [
-        "",
-        " -p"
-      ]
     },
     {
       "id": "shield",
