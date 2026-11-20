@@ -5,10 +5,13 @@
 #include <inttypes.h>
 
 #include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/sys/printk.h>
 
 #include "BTN.h"
 #include "LED.h"
+#include "my_state_machine.h"
 
 #define SLEEP_MS 1
 
