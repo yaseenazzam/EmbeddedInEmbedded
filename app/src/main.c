@@ -22,9 +22,14 @@ int main(void) {
   if (0 > LED_init()) {
     return 0;
   }
+  
+  state_machine_init();
 
   while (1) {
-    k_msleep(SLEEP_MS);
+    int ret = state_machine_run();
+    if (0 > ret) {
+      return 0;
+    }
   }
   return 0;
 }
