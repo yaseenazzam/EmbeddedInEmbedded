@@ -93,13 +93,15 @@ static void S2_entry(void *o) {
 
 static enum smf_state_result S2_run(void *o) {
     if (led_state_object.events & BTN3_EVENT) {
-        
+        smf_set_state(&led_state_object.ctx, &led_states[S0]);
+    }else if (led_state_object.count > 500){
+        smf_set_state(&led_state_object.ctx, &led_states[S3]);
     }
     return SMF_EVENT_HANDLED;
 }
 
 static void S3_entry(void *o) {
-
+    
 }
 
 static enum smf_state_result S3_run(void *o) {
