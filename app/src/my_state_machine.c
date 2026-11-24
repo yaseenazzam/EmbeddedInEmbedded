@@ -89,22 +89,39 @@ static void S2_entry(void *o) {
     LED_set(LED3, LED_OFF);
     LED_set(LED0, LED_ON);
     LED_set(LED2, LED_ON);
+    led_state_object.count = 0;
+    led_state_object.timeout = K_MSEC(2);
 }
 
 static enum smf_state_result S2_run(void *o) {
     if (led_state_object.events & BTN3_EVENT) {
         smf_set_state(&led_state_object.ctx, &led_states[S0]);
-    }else if (led_state_object.count > 500){
+    }else if (led_state_object.count >= 500){
         smf_set_state(&led_state_object.ctx, &led_states[S3]);
+    }else if (led_state_object.events == 0) {
+    led_state_object.count++;
     }
+
     return SMF_EVENT_HANDLED;
 }
 
 static void S3_entry(void *o) {
-    
+    LED_set(LED1, LED_ON);
+    LED_set(LED3, LED_ON);
+    LED_set(LED0, LED_OFF);
+    LED_set(LED2, LED_OFF);
+    led_state_object.count = 0;
+    led_state_object.timeout = K_MSEC(2);
 }
 
 static enum smf_state_result S3_run(void *o) {
+    if (led_state_object.count > 1000){
+        smf_set_state(&led_state_object.ctx, &led_states[S2]);
+    }else if (led_state_object.events & BTN3_EVENT) {
+        smf_set_state(&led_state_object.ctx, &led_states[S0]);
+    }else if (led_state_object.events == 0) {
+        led_state_object.count++;
+    }
 
     return SMF_EVENT_HANDLED;
 }
