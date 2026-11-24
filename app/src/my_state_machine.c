@@ -52,6 +52,7 @@ static const struct smf_state led_states[] = {
 };
 
 static void S0_entry(void *o) {
+    printk("Entered S0 \n");
     led_state_object.timeout = K_FOREVER;
     LED_set(LED0, LED_OFF);
     LED_set(LED1, LED_OFF);
@@ -61,6 +62,7 @@ static void S0_entry(void *o) {
 
 static enum smf_state_result S0_run(void *o) {
     if (led_state_object.events & BTN0_EVENT) {
+        printk("Exited S0 \n");
         smf_set_state(&led_state_object.ctx, &led_states[S1]);
     }
 
@@ -68,16 +70,20 @@ static enum smf_state_result S0_run(void *o) {
 }
 
 static void S1_entry(void *o) {
+    printk("Entered S1 \n");
     LED_toggle(LED0);
     led_state_object.timeout = K_MSEC(125);
 }
 
 static enum smf_state_result S1_run(void *o) {
     if (led_state_object.events & BTN1_EVENT) {
+        printk("Exited S1 \n");
         smf_set_state(&led_state_object.ctx, &led_states[S2]);
     }else if (led_state_object.events & BTN2_EVENT) {
-        smf_set_state(&led_state_object.ctx, &led_states[S4]);      
+        printk("Exited S1 \n");      
+        smf_set_state(&led_state_object.ctx, &led_states[S4]);
     }else if (led_state_object.events & BTN3_EVENT) {
+        printk("Exited S1 \n");
         smf_set_state(&led_state_object.ctx, &led_states[S0]);
     }else if (led_state_object.events == 0) {
         LED_toggle(LED0);
@@ -86,6 +92,7 @@ static enum smf_state_result S1_run(void *o) {
 }
 
 static void S2_entry(void *o) {
+    printk("Entered S2 \n");
     LED_set(LED1, LED_OFF);
     LED_set(LED3, LED_OFF);
     LED_set(LED0, LED_ON);
@@ -96,11 +103,13 @@ static void S2_entry(void *o) {
 
 static enum smf_state_result S2_run(void *o) {
     if (led_state_object.events & BTN3_EVENT) {
+        printk("Exited S2 \n");
         smf_set_state(&led_state_object.ctx, &led_states[S0]);
     }else if (led_state_object.events == 0) {
         led_state_object.count++;
 
         if (led_state_object.count >= 500){
+            printk("Exited S2 \n");
             smf_set_state(&led_state_object.ctx, &led_states[S3]);
         }
     }
@@ -109,6 +118,7 @@ static enum smf_state_result S2_run(void *o) {
 }
 
 static void S3_entry(void *o) {
+    printk("Entered S3 \n");
     LED_set(LED1, LED_ON);
     LED_set(LED3, LED_ON);
     LED_set(LED0, LED_OFF);
@@ -119,12 +129,14 @@ static void S3_entry(void *o) {
 
 static enum smf_state_result S3_run(void *o) {
     if (led_state_object.events & BTN3_EVENT) {
+        printk("Exited S3 \n");
         smf_set_state(&led_state_object.ctx, &led_states[S0]);
     } else if (led_state_object.events == 0) {
         led_state_object.count++;
 
         if (led_state_object.count >= 1000){
-        smf_set_state(&led_state_object.ctx, &led_states[S2]);
+            printk("Exited S3 \n");
+            smf_set_state(&led_state_object.ctx, &led_states[S2]);
         }
     }
 
@@ -132,6 +144,8 @@ static enum smf_state_result S3_run(void *o) {
 }
 
 static void S4_entry(void *o) {
+    printk("Entered S4 \n");
+    LED_set(LED0, LED_ON);
     LED_set(LED1, LED_ON);
     LED_set(LED2, LED_ON);
     LED_set(LED3, LED_ON);
@@ -140,6 +154,7 @@ static void S4_entry(void *o) {
 
 static enum smf_state_result S4_run(void *o) {
     if (led_state_object.events & BTN3_EVENT) {
+        printk("Exited S4 \n");
         smf_set_state(&led_state_object.ctx, &led_states[S0]);
     }else if(led_state_object.events == 0) {
         LED_toggle(LED0);
