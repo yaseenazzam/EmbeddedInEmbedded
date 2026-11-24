@@ -127,10 +127,24 @@ static enum smf_state_result S3_run(void *o) {
 }
 
 static void S4_entry(void *o) {
-
+    LED_toggle(LED0);
+    LED_toggle(LED1);
+    LED_toggle(LED2);
+    LED_toggle(LED3);
 }
 
 static enum smf_state_result S4_run(void *o) {
+    led_state_object.timeout = K_MSEC(0);
+    if (led_state_object.events & BTN3_EVENT) {
+        smf_set_state(&led_state_object.ctx, &led_states[S0]);
+    }else{
+        LED_toggle(LED0);
+        LED_toggle(LED1);
+        LED_toggle(LED2);
+        LED_toggle(LED3);
+        led_state_object.timeout = K_MSEC(62.5);
+    }
+
 
     return SMF_EVENT_HANDLED;
 }
