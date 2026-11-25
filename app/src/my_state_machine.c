@@ -13,12 +13,10 @@ static void S0_entry(void *o);
 static void S1_entry(void *o);
 static void S2_entry(void *o);
 static void S3_entry(void *o);
-static void S4_entry(void *o);
 static enum smf_state_result S0_run(void *o);
 static enum smf_state_result S1_run(void *o);
 static enum smf_state_result S2_run(void *o);
 static enum smf_state_result S3_run(void *o);
-static enum smf_state_result S4_run(void *o);
 
 
 enum state_machine_states {
@@ -32,85 +30,88 @@ enum state_machine_states {
 typedef struct {
     struct smf_ctx ctx;
 
+    uint8_t pass_entry[10];
+    uint8_t pass_check[10];
+
+    uint8_t pass_length;
+    uint8_t check_length;
     uint16_t count;
     uint32_t events;
+    int64_t start_time;
 
     k_timeout_t timeout;
 } led_state_object_t;
 
 
 
-static led_state_object_t led_state_object;
+static led_state_object_t led_state_object = {
+    .pass_entry = {0, 1, 2, 1},
+    .pass_length = 4
+};
 
 static const struct smf_state led_states[] = {
     [S0] = SMF_CREATE_STATE(S0_entry, S0_run, NULL, NULL, NULL),
     [S1] = SMF_CREATE_STATE(S1_entry, S1_run, NULL, NULL, NULL),
     [S2] = SMF_CREATE_STATE(S2_entry, S2_run, NULL, NULL, NULL),
     [S3] = SMF_CREATE_STATE(S3_entry, S3_run, NULL, NULL, NULL),
-    [S4] = SMF_CREATE_STATE(S4_entry, S4_run, NULL, NULL, NULL),
-
 };
 
 static void S0_entry(void *o) {
-    printk("Entered S0 \n");
-    led_state_object.timeout = K_FOREVER;
-    LED_set(LED0, LED_OFF);
-    LED_set(LED1, LED_OFF);
-    LED_set(LED2, LED_OFF);
-    LED_set(LED3, LED_OFF);
+    led_state_object.timeout = K_MSEC(10);
+    led_state_object.start_time = k_uptime_get();
+    LED_set(LED3, LED_ON);
 }
 
 static enum smf_state_result S0_run(void *o) {
-    if (led_state_object.events & BTN0_EVENT) {
-        printk("Exited S0 \n");
+    if (led_state_object.events & BTN3_EVENT) {
         smf_set_state(&led_state_object.ctx, &led_states[S1]);
+    }else if (k_uptime_get() - led_state_object.start_time >= 3000) {
+        smf_set_state(&led_state_object.ctx, &led_states[S2]);
     }
 
     return SMF_EVENT_HANDLED;
 }
 
 static void S1_entry(void *o) {
-    printk("Entered S1 \n");
-    LED_toggle(LED0);
-    led_state_object.timeout = K_MSEC(125);
+    LED_set(LED3, LED_OFF);
+    led_state_object.pass_length = 0;
+    led_state_object.timeout = K_FOREVER;
 }
 
 static enum smf_state_result S1_run(void *o) {
-    if (led_state_object.events & BTN1_EVENT) {
-        printk("Exited S1 \n");
+    if(led_state_object.events & BTN3_EVENT){
         smf_set_state(&led_state_object.ctx, &led_states[S2]);
-    }else if (led_state_object.events & BTN2_EVENT) {
-        printk("Exited S1 \n");      
-        smf_set_state(&led_state_object.ctx, &led_states[S4]);
-    }else if (led_state_object.events & BTN3_EVENT) {
-        printk("Exited S1 \n");
-        smf_set_state(&led_state_object.ctx, &led_states[S0]);
-    }else if (led_state_object.events == 0) {
-        LED_toggle(LED0);
+    }else if (led_state_object.pass_length < 10){
+        if (led_state_object.events & BTN0_EVENT){
+            led_state_object.pass_entry[led_state_object.pass_length++] = 0;
+        }else if (led_state_object.events & BTN1_EVENT){
+            led_state_object.pass_entry[led_state_object.pass_length++] = 1;
+        }else if (led_state_object.events & BTN2_EVENT){
+            led_state_object.pass_entry[led_state_object.pass_length++] = 2;
+        }
     }
+    
     return SMF_EVENT_HANDLED;
 }
 
 static void S2_entry(void *o) {
-    printk("Entered S2 \n");
-    LED_set(LED1, LED_OFF);
     LED_set(LED3, LED_OFF);
     LED_set(LED0, LED_ON);
-    LED_set(LED2, LED_ON);
-    led_state_object.count = 0;
-    led_state_object.timeout = K_MSEC(2);
+
+    led_state_object.check_length = 0;
+    led_state_object.timeout = K_FOREVER;
 }
 
 static enum smf_state_result S2_run(void *o) {
     if (led_state_object.events & BTN3_EVENT) {
-        printk("Exited S2 \n");
-        smf_set_state(&led_state_object.ctx, &led_states[S0]);
-    }else if (led_state_object.events == 0) {
-        led_state_object.count++;
-
-        if (led_state_object.count >= 500){
-            printk("Exited S2 \n");
-            smf_set_state(&led_state_object.ctx, &led_states[S3]);
+        smf_set_state(&led_state_object.ctx, &led_states[S3]);
+    }else if (led_state_object.check_length < 10){
+        if (led_state_object.events & BTN0_EVENT){
+            led_state_object.pass_check[led_state_object.check_length++] = 0;
+        }else if (led_state_object.events & BTN1_EVENT){
+            led_state_object.pass_check[led_state_object.check_length++] = 1;
+        }else if (led_state_object.events & BTN2_EVENT){
+            led_state_object.pass_check[led_state_object.check_length++] = 2;
         }
     }
 
@@ -118,54 +119,36 @@ static enum smf_state_result S2_run(void *o) {
 }
 
 static void S3_entry(void *o) {
-    printk("Entered S3 \n");
-    LED_set(LED1, LED_ON);
-    LED_set(LED3, LED_ON);
-    LED_set(LED0, LED_OFF);
-    LED_set(LED2, LED_OFF);
-    led_state_object.count = 0;
-    led_state_object.timeout = K_MSEC(2);
-}
+    int correct = 1;
 
-static enum smf_state_result S3_run(void *o) {
-    if (led_state_object.events & BTN3_EVENT) {
-        printk("Exited S3 \n");
-        smf_set_state(&led_state_object.ctx, &led_states[S0]);
-    } else if (led_state_object.events == 0) {
-        led_state_object.count++;
-
-        if (led_state_object.count >= 1000){
-            printk("Exited S3 \n");
-            smf_set_state(&led_state_object.ctx, &led_states[S2]);
+    if (led_state_object.pass_length != led_state_object.check_length) {
+        correct = 0;
+    } else {
+        for (int i = 0; i < led_state_object.pass_length; i++) {
+            if (led_state_object.pass_entry[i] != led_state_object.pass_check[i]) {
+                correct = 0;
+                break;
+            }
         }
     }
 
-    return SMF_EVENT_HANDLED;
-}
-
-static void S4_entry(void *o) {
-    printk("Entered S4 \n");
-    LED_set(LED0, LED_ON);
-    LED_set(LED1, LED_ON);
-    LED_set(LED2, LED_ON);
-    LED_set(LED3, LED_ON);
-    led_state_object.timeout = K_USEC(31250);
-}
-
-static enum smf_state_result S4_run(void *o) {
-    if (led_state_object.events & BTN3_EVENT) {
-        printk("Exited S4 \n");
-        smf_set_state(&led_state_object.ctx, &led_states[S0]);
-    }else if(led_state_object.events == 0) {
-        LED_toggle(LED0);
-        LED_toggle(LED1);
-        LED_toggle(LED2);
-        LED_toggle(LED3);
+    if (correct) {
+        printk("Correct!\n");
+    } else {
+        printk("Incorrect!\n");
     }
 
+    LED_set(LED0, LED_OFF);
+}
+
+static enum smf_state_result S3_run(void *o) {
+    if(led_state_object.events != 0){
+        smf_set_state(&led_state_object.ctx, &led_states[S2]);
+    }
 
     return SMF_EVENT_HANDLED;
 }
+
 
 void state_machine_init(void) {
     led_state_object.count = 0;
